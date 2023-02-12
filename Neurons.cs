@@ -49,6 +49,24 @@ namespace NNP
     class Layers
     {
         public List<Layer> layers = new List<Layer>();
+
+        public void DisplayInLine()
+        {
+            for(int i=0; i<layers.Count;i++)
+            {
+                Console.WriteLine("Layer: " + (i+1));
+                for(int j=0; j < layers[i].Neurons.Count; j++)
+                {
+                    Console.Write("[" + layers[i].Neurons[j].Value + ", (");
+                    for(int k=0; k < layers[i].Neurons[j].Weight.Count; k++)
+                    {
+                        Console.Write(layers[i].Neurons[j].Weight[k] + " ");
+                    }
+                    Console.Write(")]");
+                }
+                Console.WriteLine("");
+            }
+        }
     }
 
     class NeuralNetwork{
@@ -71,15 +89,15 @@ namespace NNP
                     {
                         float randomWeight = random.Next(-1, 1);
                         Layer1.Neurons[i].Weight.Add(randomWeight);
-                        Console.Write(Layer1.Neurons[i].Weight[j] + " ");
+                        //Console.Write(Layer1.Neurons[i].Weight[j] + " ");
                     }
-                    Console.WriteLine("Neural Changed");
+                    //Console.WriteLine("Neural Changed");
                 }
-                Console.WriteLine("Layer Changed");
+                //Console.WriteLine("Layer Changed");
             }
-            
 
-            
+
+
         }
 
         public float Sigmoid(float x)
@@ -88,9 +106,44 @@ namespace NNP
             return (k / (1 + k));
         }
 
+        public float Relu(float x)
+        {
+            return x > 0 ? x : 0;
+        }
+
         void Reverse(int currentIndex)
         {
+            if (currentIndex > 0)
+            {
+                for (int j = 0; j < layers.layers[currentIndex - 1].Neurons.Count; j++)
+                {
+                    for (int i = 0; i < layers.layers[currentIndex].Neurons.Count; i++)
+                    {
+                        float A = 0;
+                        for (int l = 0; l < layers.layers[currentIndex+1].Neurons.Count; l++)
+                        {
+                            A += layers.layers[currentIndex + 1].Neurons[l].Gamma[i];
+                        }
 
+                        float B = layers.layers[currentIndex].Neurons[i].Value * (1 - layers.layers[currentIndex].Neurons[i].Value);
+
+                        float C = layers.layers[currentIndex - 1].Neurons[j].Value;
+
+                        float Gamma = A * B;
+                        layers.layers[currentIndex].Neurons[i].Gamma.Add(Gamma);
+
+                        float Change = Gamma * C;
+
+                        float WeightToChange = (float)Math.Round(layers.layers[currentIndex - 1].Neurons[j].Weight[i], 2);
+
+                        //Console.WriteLine(WeightToChange + " -= " + Change);
+                        //Console.WriteLine("Weight Before: " + WeightToChange);
+                        WeightToChange -= Change;
+                        layers.layers[currentIndex - 1].Neurons[j].Weight[i] = WeightToChange;
+                        //Console.WriteLine("Weight After: " + WeightToChange);
+                    }
+                }
+            }
         }
 
         void FinalReverse(int currentIndex)
@@ -111,26 +164,27 @@ namespace NNP
 
                     float WeightToChange = (float) Math.Round(layers.layers[currentIndex - 1].Neurons[j].Weight[i], 2);
 
-                    if (Target[i] == 1)
-                    {
-                        Console.WriteLine("--Go Up--------------");
-                    }
-                    Console.WriteLine(WeightToChange + " -= " + Change);
-                    Console.WriteLine("Weight Before: " + WeightToChange);
+                    //if (Target[i] == 1)
+                    //{
+                        //Console.WriteLine("--Go Up--------------");
+                    //}
+                    
+                    //Console.WriteLine(WeightToChange + " -= " + Change);
+                    //Console.WriteLine("Weight Before: " + WeightToChange);
                     WeightToChange -= Change;
                     layers.layers[currentIndex - 1].Neurons[j].Weight[i] = WeightToChange;
-                    Console.WriteLine("Weight After: " + WeightToChange);
+                    //Console.WriteLine("Weight After: " + WeightToChange);
 
-                    if (Target[i] == 1)
-                    {
-                        Console.WriteLine("\n--------------------");
-                    }
+                    //if (Target[i] == 1)
+                    //{
+                        //Console.WriteLine("\n--------------------");
+                    //}
                     
                 }
             }
         }
 
-        public void Forward(int currentIndex)
+        public void Forward(int currentIndex, bool isReverse)
         {
             if (currentIndex < layers.layers.Count - 1)
             {
@@ -145,21 +199,33 @@ namespace NNP
                         ToProcess.Neurons[j].rawValue += CurrentLayer.Neurons[i].Value * CurrentLayer.Neurons[i].Weight[j];
                     }
                     ToProcess.Neurons[j].Value = Sigmoid(ToProcess.Neurons[j].rawValue);
-
                 }
             }
             if (currentIndex < layers.layers.Count)
             {
-                Forward(currentIndex + 1);
+                Forward(currentIndex + 1, isReverse);
             }
-            if (currentIndex == layers.layers.Count - 1)
+
+            if (isReverse == true)
             {
-                FinalReverse(currentIndex);
+                if (currentIndex == layers.layers.Count - 1)
+                {
+                    FinalReverse(currentIndex);
+                }
+                else if (currentIndex < layers.layers.Count - 1)
+                {
+                    Reverse(currentIndex);
+                }
             }
-            else
+        }
+
+        public void Test(Layer inputLayer)
+        {
+            for(int i=0; i< inputLayer.Neurons.Count; i++)
             {
-                Reverse(currentIndex);
+                layers.layers[0].Neurons[i].Value = inputLayer.Neurons[i].Value;
             }
+            Forward(0, false);
         }
     }
 
@@ -191,7 +257,24 @@ namespace NNP
             neuralNetwork.Target.Add(1);
 
             neuralNetwork.InitWeights();
-            neuralNetwork.Forward(0);
+
+            for (int i = 0; i < 5000; i++)
+            {
+                neuralNetwork.Forward(0, true);
+            }
+
+            layers.DisplayInLine();
+
+            Console.WriteLine("\n--Testing-----------------\n");
+
+            Layer testLayer = new Layer();
+            testLayer.Neurons.Add(new Neuron(0));
+            testLayer.Neurons.Add(new Neuron(0));
+            testLayer.Neurons.Add(new Neuron(0));
+            testLayer.Neurons.Add(new Neuron(1));
+
+            neuralNetwork.Test(testLayer);
+            layers.DisplayInLine();
 
             Console.ReadKey();
         }
