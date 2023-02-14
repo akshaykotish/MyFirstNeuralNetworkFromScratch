@@ -260,7 +260,7 @@ namespace NNP
             foreach(String label in labels)
             {
                 if (TargetDict.ContainsKey(label) == false)
-                {
+                { 
                     Target.Add(0);
                     TargetDict.Add(label, Target.Count - 1);
                 }
@@ -334,7 +334,7 @@ namespace NNP
         {
             //Create Input Layer
 
-            Layer inputLayer = new Layer(2);
+            Layer inputLayer = new Layer(4);
             Layer hiddenLayer1 = new Layer(3);
             Layer outputLayer = new Layer(2);
 
@@ -347,13 +347,13 @@ namespace NNP
             neuralNetwork.layers = layers;
 
             Dictionary<String, String> data = new Dictionary<String, String>() {
-                {"0,0", "1"},
-                {"1,1", "1"},
-                {"1,0", "0"},
-                {"0,1", "0"},
+                {"0,0,0,0", "0"},
+                {"1,1,0,0", "1"},
+                {"1,0,0,0", "1"},
+                {"0,1,0,0", "1"},
             };
 
-            neuralNetwork.Train(data, 1300);
+            neuralNetwork.Train(data, 2000);
 
             layers.DisplayInLine();
 
