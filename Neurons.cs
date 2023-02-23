@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NNP
 {
@@ -247,6 +242,7 @@ namespace NNP
             }
         }
 
+
         public void ResetTarget()
         {
             for(int i=0; i<Target.Count; i++) {
@@ -295,6 +291,43 @@ namespace NNP
             }
         }
 
+        public void Validate(Dictionary<String, String> Data, int Epochs)
+        {
+            foreach (var data in Data)
+            {
+                String[] values = data.Key.Split(',');
+                String label = data.Value;
+
+                for (int i = 0; i < values.Length; i++)
+                {
+                    layers.layers[0].Neurons[i].Value = float.Parse(values[i]);
+                }
+                Forward(0, false);
+
+                float max = 0;
+                int index = 0;
+
+                for (int i = 0; i < layers.layers[layers.layers.Count - 1].Neurons.Count; i++)
+                {
+                    float n = layers.layers[layers.layers.Count - 1].Neurons[i].Value;
+                    if (n > max)
+                    {
+                        index = i;
+                        max = n;
+                    }
+
+                    if (TargetDict.Keys.ToList()[i] != label)
+                    {
+                        float diff = 1 - layers.layers[layers.layers.Count - 1].Neurons[i].Value;
+                        Dictionary<String, String> newTrain = new Dictionary<String, String>();
+                        newTrain.Add(data.Key, data.Value);
+                        Console.Write("Validating....\n");
+                        Train(newTrain,  ((int)(Epochs)));
+                    }
+                }
+            }
+        }
+
         public void Test(Dictionary<String, String> Data)
         {
             foreach (var data in Data)
@@ -321,10 +354,35 @@ namespace NNP
                     }
                 }
 
-                layers.DisplayInLine(); 
+                //layers.DisplayInLine(); 
 
                 Console.WriteLine("Prediction is " + TargetDict.Keys.ToList()[index]);
             }
+        }
+
+        public void TestSingle(String toTest)
+        {
+            String[] values = toTest.Split(',');
+            for (int i = 0; i < values.Length; i++)
+            {
+                layers.layers[0].Neurons[i].Value = float.Parse(values[i]);
+            }
+            Forward(0, false);
+
+            float max = 0;
+            int index = 0;
+
+            for (int i = 0; i < layers.layers[layers.layers.Count - 1].Neurons.Count; i++)
+            {
+                float n = layers.layers[layers.layers.Count - 1].Neurons[i].Value;
+                if (n > max)
+                {
+                    index = i;
+                    max = n;
+                }
+            }
+            Console.WriteLine("Prediction is " + TargetDict.Keys.ToList()[index]);
+
         }
     }
 
@@ -334,8 +392,8 @@ namespace NNP
         {
             //Create Input Layer
 
-            Layer inputLayer = new Layer(4);
-            Layer hiddenLayer1 = new Layer(3);
+            Layer inputLayer = new Layer(2);
+            Layer hiddenLayer1 = new Layer(5);
             Layer outputLayer = new Layer(2);
 
             Layers layers = new Layers();
@@ -347,20 +405,15 @@ namespace NNP
             neuralNetwork.layers = layers;
 
             Dictionary<String, String> data = new Dictionary<String, String>() {
-                {"0,0,0,0", "0"},
-                {"1,1,0,0", "1"},
-                {"1,0,0,0", "1"},
-                {"0,1,0,0", "1"},
+                {"1,1", "0"},
+                {"0,1", "1"},
+                {"1,0", "1"},
+                {"0,0", "0"},
             };
 
-            neuralNetwork.Train(data, 2000);
-
-            layers.DisplayInLine();
-
-            Dictionary<String, String> test = new Dictionary<String, String>() {
-                {"5,6", "-"},
-            };
-            neuralNetwork.Test(data);
+            neuralNetwork.Train(data, 400);
+            neuralNetwork.Validate(data, 400);
+            //neuralNetwork.Test(data);
 
             bool isexit = false;
             while (isexit == false)
@@ -370,11 +423,8 @@ namespace NNP
 
                 if (input != "exit")
                 {
-                    String[] parts = input.Split(' ');
-
-                    Dictionary<String, String> test1 = new Dictionary<String, String>();
-                    test1.Add(parts[0], parts[1]);
-                    neuralNetwork.Test(test1);
+                    
+                    neuralNetwork.TestSingle(input);
                 }
                 else
                 {
