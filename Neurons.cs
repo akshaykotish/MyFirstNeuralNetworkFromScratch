@@ -87,7 +87,7 @@ namespace NNP
                     for (int j = 0; j < Layer2.Neurons.Count; j++)
                     {
                         float R = (float)random.NextDouble();
-                        float randomWeight = (float)Math.Round(R, 2);
+                        float randomWeight = (float)Math.Round(R, 1);
                         Layer1.Neurons[i].Weight.Add(randomWeight);
                         Console.Write(Layer1.Neurons[i].Weight[j] + " ");
                     }
