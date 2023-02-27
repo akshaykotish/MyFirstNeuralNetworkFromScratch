@@ -267,7 +267,6 @@ namespace NNP
                 }
             }
             
-            InitWeights();
             for (int l = 0; l < Epochs; l++)
             {
                 Console.WriteLine("Epoch Count: " + l);
@@ -410,13 +409,14 @@ namespace NNP
             neuralNetwork.layers = layers;
 
             Dictionary<String, String> data = new Dictionary<String, String>() {
-                {"1,1", "0"},
-                {"0,1", "1"},
-                {"1,0", "1"},
-                {"0,0", "0"},
+                {"1,1", "1"},
+                {"0,1", "0"},
+                {"1,0", "0"},
+                {"0,0", "1"},
             };
 
             int epochs = 400;
+            neuralNetwork.InitWeights();
             neuralNetwork.Train(data, epochs);
             neuralNetwork.Validate(data, epochs);
             //neuralNetwork.Test(data);
