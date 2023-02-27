@@ -222,6 +222,11 @@ namespace NNP
                     }
                     ToProcess.Neurons[j].rawValueBiased = ToProcess.Neurons[j].rawValue + CurrentLayer.Bias[j];
                     ToProcess.Neurons[j].Value = Sigmoid(ToProcess.Neurons[j].rawValueBiased);
+
+                    if (ToProcess.Neurons[j].Value == float.NaN)
+                    {
+                        Console.WriteLine("NAN");
+                    }
                 }
             }
             if (currentIndex < layers.layers.Count)
@@ -411,8 +416,9 @@ namespace NNP
                 {"0,0", "0"},
             };
 
-            neuralNetwork.Train(data, 400);
-            neuralNetwork.Validate(data, 400);
+            int epochs = 400;
+            neuralNetwork.Train(data, epochs);
+            neuralNetwork.Validate(data, epochs);
             //neuralNetwork.Test(data);
 
             bool isexit = false;
